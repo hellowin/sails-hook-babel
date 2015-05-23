@@ -26,4 +26,47 @@ ignore          | ((boolean/Regex)) | Can be `false` or a regex of what to ignor
 only          | ((Regex)) | Whether or not use babel's [loose](http://babeljs.io/docs/usage/loose/) mode. For default mode see http://babeljs.io/docs/usage/require/
 extensions          | ((array)) | Pass an array of extensions, such as ['.js', '.es'].  For default mode see http://babeljs.io/docs/usage/require/
 
+### Usage in testing environment
+
+Load babel outside `sails` environment. Change it to something that meet our needs.
+
+example bootstrap is put at `test/*bootstrap.test.js*`
+```
+var Sails   = require('sails'),
+    sails;
+
+var options = {
+  loose     : "all",
+  stage     : 2,
+  ignore    : null,
+  only      : null,
+  extensions: null
+};
+
+global.babel   = require("sails-hook-babel/node_modules/babel/register")(options);
+
+before(function (done) {
+  Sails.lift({
+    //put your test only config here
+  }, function (err, server) {
+    sails = server;
+    if (err) return done(err);
+    // here you can load fixtures, etc.
+    done(err, sails);
+  });
+});
+
+after(function (done) {
+  // here you can clear fixtures, etc.
+  sails.lower(done);
+});
+```
+
+Don't forget to run bootstrap first, example all unit test at `test/unit/` folder, use `package.json` script configuration so we can run it using `npm test`
+```
+"scripts": {
+  "test": "_mocha test/bootstrap.test.js test/unit/**/*.test.js --timeout 60000"
+},
+```
+
 That&rsquo;s it!
